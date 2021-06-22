@@ -1,7 +1,17 @@
-# This is just an example to get you started. A typical library package
-# exports the main API in this file. Note that you cannot rename this file
-# but you can remove it if you wish.
+type
+  Lazy*[T] = object
+    f: proc(): T {.noSideEffect.}
+  LazyImpure*[T] = object
+    f: proc(): T
 
-proc add*(x, y: int): int =
-  ## Adds two files together.
-  return x + y
+template lazy*[T](x: T): Lazy[T] =
+  Lazy[T](f: func(): T = x)
+
+converter `[]`*[T](l: Lazy[T]): T =
+  l.f()
+
+template lazyImpure*[T](x: T): LazyImpure[T] =
+  LazyImpure[T](f: proc(): T = x)
+
+converter `[]`*[T](l: LazyImpure[T]): T =
+  l.f()

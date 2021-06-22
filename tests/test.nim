@@ -1,12 +1,31 @@
-# This is just an example to get you started. You may wish to put all of your
-# tests into a single file, or separate them into multiple `test1`, `test2`
-# etc. files (better names are recommended, just make sure the name starts with
-# the letter 't').
-#
-# To run these tests, simply execute `nimble test`.
-
-import unittest
-
 import sloth
-test "can add":
-  check add(5, 5) == 10
+import std/unittest
+
+suite "lazy evaluation":
+  test "pure lazy values":
+    var plusCalled = 0
+    proc plus(a, b: int): int =
+      {.cast(noSideEffect).}:
+        plusCalled += 1
+      a + b
+    let n = plus(2, 3)
+    check plusCalled == 1
+    check n == 5
+    check plusCalled == 1
+    let l = lazy(plus(2, 3))
+    check plusCalled == 1
+    check l == 5
+    check plusCalled == 2
+  test "impure lazy values":
+    var plusCalled = 0
+    proc plus(a, b: int): int =
+      plusCalled += 1
+      a + b
+    let n = plus(2, 3)
+    check plusCalled == 1
+    check n == 5
+    check plusCalled == 1
+    let l = lazyImpure(plus(2, 3))
+    check plusCalled == 1
+    check l == 5
+    check plusCalled == 2
